@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>회식 날짜 투표</title>
+  
+  <!-- 구글 파이어베이스 SDK 로드 -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --primary: #1F7A54;
@@ -27,20 +32,9 @@
       margin: 0 auto;
       padding: 20px;
     }
-    header {
-      margin-bottom: 20px;
-    }
-    h1 {
-      font-size: 1.8rem;
-      margin: 0 0 10px 0;
-      color: #000;
-      font-weight: 900;
-    }
-    p.subtitle {
-      font-size: 0.95rem;
-      color: #666;
-      margin: 0;
-    }
+    header { margin-bottom: 20px; }
+    h1 { font-size: 1.8rem; margin: 0 0 10px 0; color: #000; font-weight: 900; }
+    p.subtitle { font-size: 0.95rem; color: #666; margin: 0; }
     .tabs {
       display: flex;
       border-bottom: 1px solid var(--border);
@@ -62,12 +56,7 @@
       border-bottom: 3px solid var(--primary);
     }
     
-    /* Section 1: User Selection */
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
+    .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
     .user-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -88,17 +77,9 @@
       background: #E8F5E9;
       border: 2px solid var(--primary);
     }
-    .user-name {
-      font-weight: bold;
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-    }
-    .user-status {
-      font-size: 0.8rem;
-      color: #888;
-    }
+    .user-name { font-weight: bold; font-size: 1.05rem; margin-bottom: 6px; }
+    .user-status { font-size: 0.8rem; color: #888; }
     
-    /* Section 2: Calendar */
     .legend {
       display: flex;
       align-items: center;
@@ -135,10 +116,7 @@
       align-items: center;
       margin-bottom: 16px;
     }
-    .month-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
+    .month-title { font-size: 1.2rem; font-weight: bold; }
     .month-actions button {
       background: #F1F3F5;
       border: 1px solid #DEE2E6;
@@ -177,23 +155,10 @@
       user-select: none;
     }
     .day-cell:hover { background: #E9ECEF; }
-    .day-num {
-      position: absolute;
-      top: 6px;
-      font-size: 0.85rem;
-      font-weight: bold;
-    }
+    .day-num { position: absolute; top: 6px; font-size: 0.85rem; font-weight: bold; }
     .day-num.sun { color: var(--red); }
-    .holiday-name {
-      position: absolute;
-      bottom: 4px;
-      font-size: 0.65rem;
-      color: #888;
-      text-align: center;
-      width: 100%;
-    }
+    .holiday-name { position: absolute; bottom: 4px; font-size: 0.65rem; color: #888; text-align: center; width: 100%; }
     
-    /* Vote States */
     .day-cell.state-O { background: var(--green); border-color: var(--green); color: white; }
     .day-cell.state-O .day-num { color: white; }
     .day-cell.state-O .holiday-name { color: rgba(255,255,255,0.8); }
@@ -204,7 +169,6 @@
     .day-cell.state-X .holiday-name { color: rgba(255,255,255,0.8); }
     .day-cell.state-X::after { content: 'X'; font-size: 1.8rem; font-weight: bold; margin-top: 4px; }
 
-    /* Result Tab */
     .result-table-wrapper {
       overflow-x: auto;
       background: var(--card-bg);
@@ -235,7 +199,6 @@
     <button class="tab" id="tabBtnResult" onclick="switchTab('result')">종합 결과</button>
   </div>
 
-  <!-- 투표하기 탭 -->
   <div id="tab-vote">
     <div class="section-title">1. 내 이름 선택</div>
     <div class="user-grid" id="userGrid"></div>
@@ -253,10 +216,9 @@
     </div>
   </div>
 
-  <!-- 종합 결과 탭 -->
   <div id="tab-result" style="display: none;">
     <div class="section-title">🏆 최다 참석 가능 날짜 순위</div>
-    <p style="font-size: 0.85rem; color: #666; margin-bottom: 16px;">O 투표수가 가장 많은 날짜 순으로 정렬되어 있습니다.</p>
+    <p style="font-size: 0.85rem; color: #666; margin-bottom: 16px;">실시간으로 합산된 전체 투표 결과입니다.</p>
     <div class="result-table-wrapper">
       <table>
         <thead>
@@ -273,36 +235,59 @@
 </div>
 
 <script>
-  // 참가자 7명 및 데이터 초기화
-  const USERS = ['조미화', '이경희', '정준섭', '김명희', '고봉순', '이일호', '공진희'];
-  const TOTAL_DAYS = 61; // 10월(31일) + 11월(30일)
-  let votes = JSON.parse(localStorage.getItem('hoesik_cal_votes')) || {};
-  
-  // 데이터 구조 보장
-  USERS.forEach(user => { if (!votes[user]) votes[user] = {}; });
-  
-  let currentUser = null;
-  const holidays = {
-    '10-03': '개천절',
-    '10-05': '대체공휴일',
-    '10-09': '한글날'
+  // 이미지에서 발급받은 실제 파이어베이스 연동 키 적용
+  const firebaseConfig = {
+    apiKey: "AIzaSyAOnnZSiaF26mJigTNqSAGKRKPlNoC7_fo",
+    authDomain: "hoesik-vote.firebaseapp.com",
+    databaseURL: "https://hoesik-vote-default-rtdb.firebaseio.com",
+    projectId: "hoesik-vote",
+    storageBucket: "hoesik-vote.firebasestorage.app",
+    messagingSenderId: "661828250438",
+    appId: "1:661828250438:web:99a32b6ed10930f83b1347",
+    measurementId: "G-WRMGM38D8M"
   };
 
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const USERS = ['조미화', '이경희', '정준섭', '김명희', '고봉순', '이일호', '공진희'];
+  const TOTAL_DAYS = 61;
+  let votes = {};
+  USERS.forEach(user => { votes[user] = {}; });
+  
+  let currentUser = null;
+  const holidays = { '10-03': '개천절', '10-05': '대체공휴일', '10-09': '한글날' };
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
   function init() {
     renderUserGrid();
     generateCalendars();
+    listenToFirebase();
   }
 
-  // 1. 이름 선택 영역 렌더링
+  function listenToFirebase() {
+    db.ref('hoesik_votes').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        USERS.forEach(u => {
+          votes[u] = data[u] || {};
+        });
+      }
+      renderUserGrid();
+      updateCalendarUI();
+      if (document.getElementById('tab-result').style.display !== 'none') {
+        renderResult();
+      }
+    });
+  }
+
   function renderUserGrid() {
     const grid = document.getElementById('userGrid');
     grid.innerHTML = '';
 
     USERS.forEach(user => {
-      // 투표한 일수 계산 (O 또는 X 가 마킹된 날)
-      const votedCount = Object.keys(votes[user]).filter(k => votes[user][k] !== '').length;
+      const userVotes = votes[user] || {};
+      const votedCount = Object.keys(userVotes).filter(k => userVotes[k] !== '').length;
       const statusText = votedCount === 0 ? '미투표' : `${votedCount}/${TOTAL_DAYS}일 체크`;
       
       const card = document.createElement('div');
@@ -322,24 +307,19 @@
     document.getElementById('calendarArea').style.display = 'block';
     document.getElementById('selectedUserName').innerText = user;
     renderUserGrid();
-    updateCalendarUI(); // 달력 상태 업데이트
+    updateCalendarUI();
   }
 
-  // 2. 달력 생성 로직 (10월, 11월)
   function generateCalendars() {
     const container = document.getElementById('calendars');
     container.innerHTML = '';
     
-    const months = [
-      { year: 2026, month: 10 },
-      { year: 2026, month: 11 }
-    ];
+    const months = [{ year: 2026, month: 10 }, { year: 2026, month: 11 }];
 
     months.forEach(m => {
       const monthDiv = document.createElement('div');
       monthDiv.className = 'month-container';
       
-      // 헤더 & 버튼
       const headerDiv = document.createElement('div');
       headerDiv.className = 'month-header';
       headerDiv.innerHTML = `
@@ -352,11 +332,9 @@
       `;
       monthDiv.appendChild(headerDiv);
 
-      // 달력 그리드
       const grid = document.createElement('div');
       grid.className = 'calendar-grid';
 
-      // 요일 헤더
       weekdays.forEach((day, idx) => {
         const d = document.createElement('div');
         d.className = `weekday ${idx === 0 ? 'sun' : ''}`;
@@ -364,12 +342,11 @@
         grid.appendChild(d);
       });
 
-      // 날짜 채우기
       const daysInMonth = new Date(m.year, m.month, 0).getDate();
       const firstDay = new Date(m.year, m.month - 1, 1).getDay();
 
       for (let i = 0; i < firstDay; i++) {
-        grid.appendChild(document.createElement('div')); // 빈 칸
+        grid.appendChild(document.createElement('div'));
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
@@ -395,23 +372,21 @@
     });
   }
 
-  // 달력 클릭 시 토글 로직 (O -> X -> 미정)
   function toggleVote(dateKey) {
     if (!currentUser) return;
+    if (!votes[currentUser]) votes[currentUser] = {};
     const current = votes[currentUser][dateKey];
     
     if (current === 'O') votes[currentUser][dateKey] = 'X';
     else if (current === 'X') delete votes[currentUser][dateKey];
     else votes[currentUser][dateKey] = 'O';
 
-    saveData();
-    updateCalendarUI();
-    renderUserGrid();
+    saveToFirebase();
   }
 
-  // 전부 O, 전부 X, 비우기 기능
   function setMonthBulk(year, month, value) {
     if (!currentUser) return;
+    if (!votes[currentUser]) votes[currentUser] = {};
     const daysInMonth = new Date(year, month, 0).getDate();
     
     for (let d = 1; d <= daysInMonth; d++) {
@@ -422,29 +397,27 @@
         votes[currentUser][dateKey] = value;
       }
     }
-    saveData();
-    updateCalendarUI();
-    renderUserGrid();
+    saveToFirebase();
   }
 
   function updateCalendarUI() {
     if (!currentUser) return;
+    const userVotes = votes[currentUser] || {};
     
-    // 모든 셀 상태 초기화
     document.querySelectorAll('.day-cell').forEach(cell => {
       cell.classList.remove('state-O', 'state-X');
       const dateKey = cell.id.replace('cell-', '');
-      const status = votes[currentUser][dateKey];
+      const status = userVotes[dateKey];
       if (status === 'O') cell.classList.add('state-O');
       if (status === 'X') cell.classList.add('state-X');
     });
   }
 
-  function saveData() {
-    localStorage.setItem('hoesik_cal_votes', JSON.stringify(votes));
+  function saveToFirebase() {
+    if (!currentUser) return;
+    db.ref('hoesik_votes/' + currentUser).set(votes[currentUser] || {});
   }
 
-  // 3. 탭 전환 및 결과 렌더링
   function switchTab(tab) {
     document.getElementById('tabBtnVote').classList.remove('active');
     document.getElementById('tabBtnResult').classList.remove('active');
@@ -464,11 +437,8 @@
   function renderResult() {
     const headRow = document.getElementById('resultHeader');
     headRow.innerHTML = '<th>순위</th><th>날짜 (요일)</th><th>가능 인원</th>';
-    USERS.forEach(u => {
-      headRow.innerHTML += `<th>${u}</th>`;
-    });
+    USERS.forEach(u => { headRow.innerHTML += `<th>${u}</th>`; });
 
-    // 전체 날짜 배열 생성
     let allDates = [];
     [10, 11].forEach(month => {
       const days = new Date(2026, month, 0).getDate();
@@ -477,19 +447,17 @@
       }
     });
 
-    // 날짜별 통계 집계
     let stats = allDates.map(date => {
       let countO = 0;
       let userVotes = {};
       USERS.forEach(u => {
-        const v = votes[u][date] || '';
+        const v = (votes[u] && votes[u][date]) ? votes[u][date] : '';
         userVotes[u] = v;
         if (v === 'O') countO++;
       });
       return { date, countO, userVotes };
     });
 
-    // O가 많은 순서대로 내림차순 정렬, 투표수 0인 날은 맨 뒤로
     stats.sort((a, b) => b.countO - a.countO);
 
     const tbody = document.getElementById('resultBody');
@@ -499,8 +467,7 @@
     let prevCount = -1;
     let displayRank = 1;
 
-    stats.forEach((item, index) => {
-      // 투표가 아예 없는 날은 숨기거나 맨 밑으로 처리 (가시성 위해 O가 0명인 날은 숨기지 않음)
+    stats.forEach((item) => {
       if (item.countO !== prevCount) {
         displayRank = rank;
         prevCount = item.countO;
@@ -532,7 +499,6 @@
     });
   }
 
-  // 페이지 진입 시 실행
   init();
 </script>
 </body>
