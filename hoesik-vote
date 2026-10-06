@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026년 10월-11월 회식 일정 투표</title>
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --bg: #F8F9FA;
+      --card-bg: #FFFFFF;
+      --border: #E9ECEF;
+      --sat: #2B6CB0;
+      --sun: #E53E3E;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: #333;
+      margin: 0;
+      padding: 16px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    p.sub {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .best-summary {
+      background: #EBF8FF;
+      border: 1px solid #BEE3F8;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+    .best-summary h2 {
+      font-size: 1.05rem;
+      margin: 0 0 8px 0;
+      color: #2B6CB0;
+    }
+    .best-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .best-badge {
+      background: #2B6CB0;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .participants-config {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .participant-input {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+    button:hover { opacity: 0.9; }
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 4px;
+      white-space: nowrap;
+    }
+    th {
+      background: #F1F3F5;
+      position: sticky;
+      top: 0;
+    }
+    .day-sat { color: var(--sat); font-weight: bold; }
+    .day-sun { color: var(--sun); font-weight: bold; }
+    .vote-btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+    }
+    .vote-opt {
+      width: 26px;
+      height: 26px;
+      line-height: 24px;
+      border: 1px solid #CBD5E0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      user-select: none;
+      background: #FFF;
+    }
+    .vote-opt.selected-O { background: #48BB78; color: white; border-color: #48BB78; }
+    .vote-opt.selected-TRI { background: #ECC94B; color: white; border-color: #ECC94B; }
+    .vote-opt.selected-X { background: #F56565; color: white; border-color: #F56565; }
+    .score-cell {
+      font-weight: bold;
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🍺 2026년 10월-11월 회식 일정 투표</h1>
+  <p class="sub">참여자 6명의 가능 날짜(O / △ / X)를 선택해주세요.</p>
+
+  <!-- 베스트 추천 날짜 요약 -->
+  <div class="best-summary">
+    <h2>🎉 최적의 회식 후보 날짜 (O가 가장 많은 날)</h2>
+    <div class="best-list" id="bestList">투표를 진행하면 가장 많은 참여자가 참석할 수 있는 날짜가 여기에 표시됩니다.</div>
+  </div>
+
+  <!-- 참여자 이름 변경 -->
+  <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">👥 참여자 이름 (6명)</p>
+  <div class="participants-config" id="participantInputs"></div>
+
+  <div class="actions">
+    <button onclick="copySummaryText()">📋 결과 텍스트 복사 (카톡 공유용)</button>
+    <button onclick="resetData()" style="background: #A0AEC0;">🔄 투표 초기화</button>
+  </div>
+
+  <!-- 날짜별 투표 표 -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>날짜</th>
+          <th>요일</th>
+          <th>가능 인원</th>
+          <th id="thP1">팀원 1</th>
+          <th id="thP2">팀원 2</th>
+          <th id="thP3">팀원 3</th>
+          <th id="thP4">팀원 4</th>
+          <th id="thP5">팀원 5</th>
+          <th id="thP6">팀원 6</th>
+        </tr>
+      </thead>
+      <tbody id="voteTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const NUM_PARTICIPANTS = 6;
+  let names = JSON.parse(localStorage.getItem('hoesik_names')) || 
+              Array.from({length: NUM_PARTICIPANTS}, (_, i) => `팀원 ${i+1}`);
+  let votes = JSON.parse(localStorage.getItem('hoesik_votes')) || {};
+
+  // 2026년 10월 1일 ~ 11월 30일 날짜 생성
+  const dates = [];
+  let curr = new Date(2026, 9, 1); // 10월
+  const end = new Date(2026, 10, 30); // 11월
+  while (curr <= end) {
+    dates.push(new Date(curr));
+    curr.setDate(curr.getDate() + 1);
+  }
+
+  const daysKo = ['일', '월', '화', '수', '목', '금', '토'];
+
+  function initUI() {
+    renderNameInputs();
+    renderTable();
+    updateSummary();
+  }
+
+  function renderNameInputs() {
+    const container = document.getElementById('participantInputs');
+    container.innerHTML = '';
+    names.forEach((name, idx) => {
+      const input = document.createElement('input');
+      input.className = 'participant-input';
+      input.value = name;
+      input.onchange = (e) => {
+        names[idx] = e.target.value || `팀원 ${idx+1}`;
+        localStorage.setItem('hoesik_names', JSON.stringify(names));
+        document.getElementById(`thP${idx+1}`).innerText = names[idx];
+        updateSummary();
+      };
+      container.appendChild(input);
+    });
+  }
+
+  function formatDateKey(date) {
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${m}.${d}`;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('voteTableBody');
+    tbody.innerHTML = '';
+
+    names.forEach((name, i) => {
+      document.getElementById(`thP${i+1}`).innerText = name;
+    });
+
+    dates.forEach(d => {
+      const dateKey = formatDateKey(d);
+      const dayIdx = d.getDay();
+      const dayStr = daysKo[dayIdx];
+      let dayClass = '';
+      if (dayIdx === 0) dayClass = 'day-sun';
+      if (dayIdx === 6) dayClass = 'day-sat';
+
+      const tr = document.createElement('tr');
+      
+      // 날짜 / 요일
+      tr.innerHTML = `
+        <td>${d.getMonth()+1}/${d.getDate()}</td>
+        <td class="${dayClass}">${dayStr}</td>
+        <td class="score-cell" id="score-${dateKey}">0/6</td>
+      `;
+
+      // 6명 셀
+      for (let pIdx = 0; pIdx < NUM_PARTICIPANTS; pIdx++) {
+        const td = document.createElement('td');
+        const currVal = votes[dateKey]?.[pIdx] || '';
+        
+        td.innerHTML = `
+          <div class="vote-btn-group">
+            <div class="vote-opt ${currVal === 'O' ? 'selected-O' : ''}" onclick="setVote('${dateKey}', ${pIdx}, 'O')">O</div>
+            <div class="vote-opt ${currVal === '△' ? 'selected-TRI' : ''}" onclick="setVote('${dateKey}', ${pIdx}, '△')">△</div>
+            <div class="vote-opt ${currVal === 'X' ? 'selected-X' : ''}" onclick="setVote('${dateKey}', ${pIdx}, 'X')">X</div>
+          </div>
+        `;
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function setVote(dateKey, pIdx, val) {
+    if (!votes[dateKey]) votes[dateKey] = Array(NUM_PARTICIPANTS).fill('');
+    votes[dateKey][pIdx] = votes[dateKey][pIdx] === val ? '' : val; // 토글
+    localStorage.setItem('hoesik_votes', JSON.stringify(votes));
+    renderTable();
+    updateSummary();
+  }
+
+  function updateSummary() {
+    let maxO = -1;
+    const dateScores = [];
+
+    dates.forEach(d => {
+      const dateKey = formatDateKey(d);
+      const dayStr = daysKo[d.getDay()];
+      const rowVotes = votes[dateKey] || Array(NUM_PARTICIPANTS).fill('');
+      const countO = rowVotes.filter(v => v === 'O').length;
+      const countTri = rowVotes.filter(v => v === '△').length;
+
+      const scoreEl = document.getElementById(`score-${dateKey}`);
+      if (scoreEl) scoreEl.innerText = `${countO}/6`;
+
+      dateScores.push({ dateKey, dayStr, countO, countTri });
+      if (countO > maxO) maxO = countO;
+    });
+
+    const bestList = document.getElementById('bestList');
+    if (maxO <= 0) {
+      bestList.innerHTML = '투표를 진행하면 가장 많은 참여자가 참석할 수 있는 날짜가 표시됩니다.';
+      return;
+    }
+
+    const topDates = dateScores.filter(item => item.countO === maxO);
+    bestList.innerHTML = topDates.map(item => 
+      `<span class="best-badge">${item.dateKey} (${item.dayStr}) : O ${item.countO}명 / △ ${item.countTri}명</span>`
+    ).join('');
+  }
+
+  function copySummaryText() {
+    let text = `[2026년 10월-11월 회식 일정 투표 요약]\n\n`;
+    dates.forEach(d => {
+      const dateKey = formatDateKey(d);
+      const rowVotes = votes[dateKey] || [];
+      const countO = rowVotes.filter(v => v === 'O').length;
+      if (countO >= 4) { // 4명 이상 O인 날짜만 간략 출력
+        text += `• ${dateKey}(${daysKo[d.getDay()]}): O ${countO}명\n`;
+      }
+    });
+    navigator.clipboard.writeText(text).then(() => alert('투표 결과가 클립보드에 복사되었습니다! 카톡에 붙여넣기 하세요.'));
+  }
+
+  function resetData() {
+    if (confirm('모든 투표 및 참여자 데이터가 초기화됩니다.')) {
+      localStorage.removeItem('hoesik_votes');
+      votes = {};
+      renderTable();
+      updateSummary();
+    }
+  }
+
+  initUI();
+</script>
+</body>
+</html>
