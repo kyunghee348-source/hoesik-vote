@@ -3,334 +3,537 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026년 10월-11월 회식 일정 투표</title>
+  <title>회식 날짜 투표</title>
   <style>
     :root {
-      --primary: #4A90E2;
-      --bg: #F8F9FA;
+      --primary: #1F7A54;
+      --bg: #F5F7F6;
       --card-bg: #FFFFFF;
-      --border: #E9ECEF;
-      --sat: #2B6CB0;
-      --sun: #E53E3E;
+      --border: #E0E0E0;
+      --text: #333333;
+      --red: #D32F2F;
+      --green: #2E7D32;
     }
+    * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
-      color: #333;
+      color: var(--text);
       margin: 0;
-      padding: 16px;
+      padding: 0;
     }
     .container {
-      max-width: 900px;
+      max-width: 800px;
       margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin: 0 0 10px 0;
+      color: #000;
+      font-weight: 900;
+    }
+    p.subtitle {
+      font-size: 0.95rem;
+      color: #666;
+      margin: 0;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px 0;
+      cursor: pointer;
+      font-weight: bold;
+      color: #888;
+      background: transparent;
+      border: none;
+      font-size: 1rem;
+    }
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    /* Section 1: User Selection */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+    .user-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .user-card:hover { border-color: var(--primary); }
+    .user-card.active {
+      background: #E8F5E9;
+      border: 2px solid var(--primary);
+    }
+    .user-name {
+      font-weight: bold;
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+    .user-status {
+      font-size: 0.8rem;
+      color: #888;
+    }
+    
+    /* Section 2: Calendar */
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 16px;
+    }
+    .legend-icon {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+      font-size: 0.7rem;
+    }
+    .icon-O { background: var(--green); }
+    .icon-X { background: var(--red); }
+    .icon-empty { background: transparent; border: 1px dashed #ccc; color: transparent; }
+
+    .month-container {
       background: var(--card-bg);
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    h1 {
-      font-size: 1.4rem;
-      text-align: center;
-      margin-bottom: 8px;
-    }
-    p.sub {
-      text-align: center;
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
-    .best-summary {
-      background: #EBF8FF;
-      border: 1px solid #BEE3F8;
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 20px;
-    }
-    .best-summary h2 {
-      font-size: 1.05rem;
-      margin: 0 0 8px 0;
-      color: #2B6CB0;
-    }
-    .best-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .best-badge {
-      background: #2B6CB0;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 16px;
-      font-size: 0.85rem;
-      font-weight: bold;
-    }
-    .participants-config {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .participant-input {
-      padding: 6px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 0.85rem;
-    }
-    .actions {
+    .month-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 12px;
+      align-items: center;
+      margin-bottom: 16px;
     }
-    button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
+    .month-title {
+      font-size: 1.2rem;
       font-weight: bold;
-      font-size: 0.85rem;
     }
-    button:hover { opacity: 0.9; }
-    .table-wrapper {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      text-align: center;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 8px 4px;
-      white-space: nowrap;
-    }
-    th {
+    .month-actions button {
       background: #F1F3F5;
-      position: sticky;
-      top: 0;
-    }
-    .day-sat { color: var(--sat); font-weight: bold; }
-    .day-sun { color: var(--sun); font-weight: bold; }
-    .vote-btn-group {
-      display: flex;
-      justify-content: center;
-      gap: 2px;
-    }
-    .vote-opt {
-      width: 26px;
-      height: 26px;
-      line-height: 24px;
-      border: 1px solid #CBD5E0;
+      border: 1px solid #DEE2E6;
       border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
       cursor: pointer;
-      font-size: 0.75rem;
-      user-select: none;
-      background: #FFF;
+      margin-left: 4px;
     }
-    .vote-opt.selected-O { background: #48BB78; color: white; border-color: #48BB78; }
-    .vote-opt.selected-TRI { background: #ECC94B; color: white; border-color: #ECC94B; }
-    .vote-opt.selected-X { background: #F56565; color: white; border-color: #F56565; }
-    .score-cell {
+    .month-actions button:hover { background: #E9ECEF; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .weekday {
+      text-align: center;
+      font-size: 0.85rem;
       font-weight: bold;
-      color: var(--primary);
+      color: #555;
+      padding-bottom: 8px;
+    }
+    .weekday.sun { color: var(--red); }
+    .day-cell {
+      aspect-ratio: 1 / 1.1;
+      background: #F8F9FA;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .day-cell:hover { background: #E9ECEF; }
+    .day-num {
+      position: absolute;
+      top: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .day-num.sun { color: var(--red); }
+    .holiday-name {
+      position: absolute;
+      bottom: 4px;
+      font-size: 0.65rem;
+      color: #888;
+      text-align: center;
+      width: 100%;
+    }
+    
+    /* Vote States */
+    .day-cell.state-O { background: var(--green); border-color: var(--green); color: white; }
+    .day-cell.state-O .day-num { color: white; }
+    .day-cell.state-O .holiday-name { color: rgba(255,255,255,0.8); }
+    .day-cell.state-O::after { content: 'O'; font-size: 1.8rem; font-weight: bold; margin-top: 4px; }
+    
+    .day-cell.state-X { background: var(--red); border-color: var(--red); color: white; }
+    .day-cell.state-X .day-num { color: white; }
+    .day-cell.state-X .holiday-name { color: rgba(255,255,255,0.8); }
+    .day-cell.state-X::after { content: 'X'; font-size: 1.8rem; font-weight: bold; margin-top: 4px; }
+
+    /* Result Tab */
+    .result-table-wrapper {
+      overflow-x: auto;
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem; }
+    th, td { padding: 10px 4px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { background: #F1F3F5; font-weight: bold; }
+    .best-row { background: #E8F5E9; font-weight: bold; }
+    .rank-badge { background: var(--green); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;}
+
+    @media (max-width: 500px) {
+      .day-cell::after { font-size: 1.2rem; }
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🍺 2026년 10월-11월 회식 일정 투표</h1>
-  <p class="sub">참여자 6명의 가능 날짜(O / △ / X)를 선택해주세요.</p>
+  <header>
+    <h1>회식 날짜 투표</h1>
+    <p class="subtitle">2026년 10월·11월 중 가능한 날에 O, 안 되는 날에 X를 눌러주세요.</p>
+  </header>
 
-  <!-- 베스트 추천 날짜 요약 -->
-  <div class="best-summary">
-    <h2>🎉 최적의 회식 후보 날짜 (O가 가장 많은 날)</h2>
-    <div class="best-list" id="bestList">투표를 진행하면 가장 많은 참여자가 참석할 수 있는 날짜가 여기에 표시됩니다.</div>
+  <div class="tabs">
+    <button class="tab active" id="tabBtnVote" onclick="switchTab('vote')">투표하기</button>
+    <button class="tab" id="tabBtnResult" onclick="switchTab('result')">종합 결과</button>
   </div>
 
-  <!-- 참여자 이름 변경 -->
-  <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">👥 참여자 이름 (6명)</p>
-  <div class="participants-config" id="participantInputs"></div>
+  <!-- 투표하기 탭 -->
+  <div id="tab-vote">
+    <div class="section-title">1. 내 이름 선택</div>
+    <div class="user-grid" id="userGrid"></div>
 
-  <div class="actions">
-    <button onclick="copySummaryText()">📋 결과 텍스트 복사 (카톡 공유용)</button>
-    <button onclick="resetData()" style="background: #A0AEC0;">🔄 투표 초기화</button>
+    <div id="calendarArea" style="display: none;">
+      <div class="section-title" style="margin-top: 20px;">2. <span id="selectedUserName"></span>님의 가능 여부</div>
+      <div class="legend">
+        <span class="legend-icon icon-O">O</span> 가능 &nbsp;
+        <span class="legend-icon icon-X">X</span> 불가 &nbsp;
+        <span class="legend-icon icon-empty"></span> 미정 &nbsp;
+        <span style="color:#999; font-size:0.75rem;">(한 번 누를 때마다 O → X → 미정)</span>
+      </div>
+
+      <div id="calendars"></div>
+    </div>
   </div>
 
-  <!-- 날짜별 투표 표 -->
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th>날짜</th>
-          <th>요일</th>
-          <th>가능 인원</th>
-          <th id="thP1">팀원 1</th>
-          <th id="thP2">팀원 2</th>
-          <th id="thP3">팀원 3</th>
-          <th id="thP4">팀원 4</th>
-          <th id="thP5">팀원 5</th>
-          <th id="thP6">팀원 6</th>
-        </tr>
-      </thead>
-      <tbody id="voteTableBody"></tbody>
-    </table>
+  <!-- 종합 결과 탭 -->
+  <div id="tab-result" style="display: none;">
+    <div class="section-title">🏆 최다 참석 가능 날짜 순위</div>
+    <p style="font-size: 0.85rem; color: #666; margin-bottom: 16px;">O 투표수가 가장 많은 날짜 순으로 정렬되어 있습니다.</p>
+    <div class="result-table-wrapper">
+      <table>
+        <thead>
+          <tr id="resultHeader">
+            <th>순위</th>
+            <th>날짜</th>
+            <th>가능 인원</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <script>
-  const NUM_PARTICIPANTS = 6;
-  let names = JSON.parse(localStorage.getItem('hoesik_names')) || 
-              Array.from({length: NUM_PARTICIPANTS}, (_, i) => `팀원 ${i+1}`);
-  let votes = JSON.parse(localStorage.getItem('hoesik_votes')) || {};
+  // 참가자 7명 및 데이터 초기화
+  const USERS = ['조미화', '이경희', '정준섭', '김명희', '고봉순', '이일호', '공진희'];
+  const TOTAL_DAYS = 61; // 10월(31일) + 11월(30일)
+  let votes = JSON.parse(localStorage.getItem('hoesik_cal_votes')) || {};
+  
+  // 데이터 구조 보장
+  USERS.forEach(user => { if (!votes[user]) votes[user] = {}; });
+  
+  let currentUser = null;
+  const holidays = {
+    '10-03': '개천절',
+    '10-05': '대체공휴일',
+    '10-09': '한글날'
+  };
 
-  // 2026년 10월 1일 ~ 11월 30일 날짜 생성
-  const dates = [];
-  let curr = new Date(2026, 9, 1); // 10월
-  const end = new Date(2026, 10, 30); // 11월
-  while (curr <= end) {
-    dates.push(new Date(curr));
-    curr.setDate(curr.getDate() + 1);
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+
+  function init() {
+    renderUserGrid();
+    generateCalendars();
   }
 
-  const daysKo = ['일', '월', '화', '수', '목', '금', '토'];
+  // 1. 이름 선택 영역 렌더링
+  function renderUserGrid() {
+    const grid = document.getElementById('userGrid');
+    grid.innerHTML = '';
 
-  function initUI() {
-    renderNameInputs();
-    renderTable();
-    updateSummary();
-  }
-
-  function renderNameInputs() {
-    const container = document.getElementById('participantInputs');
-    container.innerHTML = '';
-    names.forEach((name, idx) => {
-      const input = document.createElement('input');
-      input.className = 'participant-input';
-      input.value = name;
-      input.onchange = (e) => {
-        names[idx] = e.target.value || `팀원 ${idx+1}`;
-        localStorage.setItem('hoesik_names', JSON.stringify(names));
-        document.getElementById(`thP${idx+1}`).innerText = names[idx];
-        updateSummary();
-      };
-      container.appendChild(input);
-    });
-  }
-
-  function formatDateKey(date) {
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${m}.${d}`;
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('voteTableBody');
-    tbody.innerHTML = '';
-
-    names.forEach((name, i) => {
-      document.getElementById(`thP${i+1}`).innerText = name;
-    });
-
-    dates.forEach(d => {
-      const dateKey = formatDateKey(d);
-      const dayIdx = d.getDay();
-      const dayStr = daysKo[dayIdx];
-      let dayClass = '';
-      if (dayIdx === 0) dayClass = 'day-sun';
-      if (dayIdx === 6) dayClass = 'day-sat';
-
-      const tr = document.createElement('tr');
+    USERS.forEach(user => {
+      // 투표한 일수 계산 (O 또는 X 가 마킹된 날)
+      const votedCount = Object.keys(votes[user]).filter(k => votes[user][k] !== '').length;
+      const statusText = votedCount === 0 ? '미투표' : `${votedCount}/${TOTAL_DAYS}일 체크`;
       
-      // 날짜 / 요일
-      tr.innerHTML = `
-        <td>${d.getMonth()+1}/${d.getDate()}</td>
-        <td class="${dayClass}">${dayStr}</td>
-        <td class="score-cell" id="score-${dateKey}">0/6</td>
+      const card = document.createElement('div');
+      card.className = `user-card ${currentUser === user ? 'active' : ''}`;
+      card.onclick = () => selectUser(user);
+      
+      card.innerHTML = `
+        <div class="user-name">${user}</div>
+        <div class="user-status" style="color: ${votedCount > 0 ? 'var(--primary)' : '#888'}">${statusText}</div>
       `;
+      grid.appendChild(card);
+    });
+  }
 
-      // 6명 셀
-      for (let pIdx = 0; pIdx < NUM_PARTICIPANTS; pIdx++) {
-        const td = document.createElement('td');
-        const currVal = votes[dateKey]?.[pIdx] || '';
-        
-        td.innerHTML = `
-          <div class="vote-btn-group">
-            <div class="vote-opt ${currVal === 'O' ? 'selected-O' : ''}" onclick="setVote('${dateKey}', ${pIdx}, 'O')">O</div>
-            <div class="vote-opt ${currVal === '△' ? 'selected-TRI' : ''}" onclick="setVote('${dateKey}', ${pIdx}, '△')">△</div>
-            <div class="vote-opt ${currVal === 'X' ? 'selected-X' : ''}" onclick="setVote('${dateKey}', ${pIdx}, 'X')">X</div>
-          </div>
-        `;
-        tr.appendChild(td);
+  function selectUser(user) {
+    currentUser = user;
+    document.getElementById('calendarArea').style.display = 'block';
+    document.getElementById('selectedUserName').innerText = user;
+    renderUserGrid();
+    updateCalendarUI(); // 달력 상태 업데이트
+  }
+
+  // 2. 달력 생성 로직 (10월, 11월)
+  function generateCalendars() {
+    const container = document.getElementById('calendars');
+    container.innerHTML = '';
+    
+    const months = [
+      { year: 2026, month: 10 },
+      { year: 2026, month: 11 }
+    ];
+
+    months.forEach(m => {
+      const monthDiv = document.createElement('div');
+      monthDiv.className = 'month-container';
+      
+      // 헤더 & 버튼
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'month-header';
+      headerDiv.innerHTML = `
+        <div class="month-title">${m.year}년 ${m.month}월</div>
+        <div class="month-actions">
+          <button onclick="setMonthBulk(${m.year}, ${m.month}, 'O')">전부 O</button>
+          <button onclick="setMonthBulk(${m.year}, ${m.month}, 'X')">전부 X</button>
+          <button onclick="setMonthBulk(${m.year}, ${m.month}, '')">비우기</button>
+        </div>
+      `;
+      monthDiv.appendChild(headerDiv);
+
+      // 달력 그리드
+      const grid = document.createElement('div');
+      grid.className = 'calendar-grid';
+
+      // 요일 헤더
+      weekdays.forEach((day, idx) => {
+        const d = document.createElement('div');
+        d.className = `weekday ${idx === 0 ? 'sun' : ''}`;
+        d.innerText = day;
+        grid.appendChild(d);
+      });
+
+      // 날짜 채우기
+      const daysInMonth = new Date(m.year, m.month, 0).getDate();
+      const firstDay = new Date(m.year, m.month - 1, 1).getDay();
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.appendChild(document.createElement('div')); // 빈 칸
       }
 
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateKey = `${m.year}-${String(m.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const holidayStr = `${String(m.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const isSun = new Date(m.year, m.month - 1, day).getDay() === 0 || holidays[holidayStr];
+
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        cell.id = `cell-${dateKey}`;
+        cell.onclick = () => toggleVote(dateKey);
+
+        let innerHTML = `<div class="day-num ${isSun ? 'sun' : ''}">${day}</div>`;
+        if (holidays[holidayStr]) {
+          innerHTML += `<div class="holiday-name ${isSun ? 'sun' : ''}">${holidays[holidayStr]}</div>`;
+        }
+        cell.innerHTML = innerHTML;
+        grid.appendChild(cell);
+      }
+
+      monthDiv.appendChild(grid);
+      container.appendChild(monthDiv);
+    });
+  }
+
+  // 달력 클릭 시 토글 로직 (O -> X -> 미정)
+  function toggleVote(dateKey) {
+    if (!currentUser) return;
+    const current = votes[currentUser][dateKey];
+    
+    if (current === 'O') votes[currentUser][dateKey] = 'X';
+    else if (current === 'X') delete votes[currentUser][dateKey];
+    else votes[currentUser][dateKey] = 'O';
+
+    saveData();
+    updateCalendarUI();
+    renderUserGrid();
+  }
+
+  // 전부 O, 전부 X, 비우기 기능
+  function setMonthBulk(year, month, value) {
+    if (!currentUser) return;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      if (value === '') {
+        delete votes[currentUser][dateKey];
+      } else {
+        votes[currentUser][dateKey] = value;
+      }
+    }
+    saveData();
+    updateCalendarUI();
+    renderUserGrid();
+  }
+
+  function updateCalendarUI() {
+    if (!currentUser) return;
+    
+    // 모든 셀 상태 초기화
+    document.querySelectorAll('.day-cell').forEach(cell => {
+      cell.classList.remove('state-O', 'state-X');
+      const dateKey = cell.id.replace('cell-', '');
+      const status = votes[currentUser][dateKey];
+      if (status === 'O') cell.classList.add('state-O');
+      if (status === 'X') cell.classList.add('state-X');
+    });
+  }
+
+  function saveData() {
+    localStorage.setItem('hoesik_cal_votes', JSON.stringify(votes));
+  }
+
+  // 3. 탭 전환 및 결과 렌더링
+  function switchTab(tab) {
+    document.getElementById('tabBtnVote').classList.remove('active');
+    document.getElementById('tabBtnResult').classList.remove('active');
+    document.getElementById('tab-vote').style.display = 'none';
+    document.getElementById('tab-result').style.display = 'none';
+
+    if (tab === 'vote') {
+      document.getElementById('tabBtnVote').classList.add('active');
+      document.getElementById('tab-vote').style.display = 'block';
+    } else {
+      document.getElementById('tabBtnResult').classList.add('active');
+      document.getElementById('tab-result').style.display = 'block';
+      renderResult();
+    }
+  }
+
+  function renderResult() {
+    const headRow = document.getElementById('resultHeader');
+    headRow.innerHTML = '<th>순위</th><th>날짜 (요일)</th><th>가능 인원</th>';
+    USERS.forEach(u => {
+      headRow.innerHTML += `<th>${u}</th>`;
+    });
+
+    // 전체 날짜 배열 생성
+    let allDates = [];
+    [10, 11].forEach(month => {
+      const days = new Date(2026, month, 0).getDate();
+      for(let d=1; d<=days; d++) {
+        allDates.push(`${2026}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+      }
+    });
+
+    // 날짜별 통계 집계
+    let stats = allDates.map(date => {
+      let countO = 0;
+      let userVotes = {};
+      USERS.forEach(u => {
+        const v = votes[u][date] || '';
+        userVotes[u] = v;
+        if (v === 'O') countO++;
+      });
+      return { date, countO, userVotes };
+    });
+
+    // O가 많은 순서대로 내림차순 정렬, 투표수 0인 날은 맨 뒤로
+    stats.sort((a, b) => b.countO - a.countO);
+
+    const tbody = document.getElementById('resultBody');
+    tbody.innerHTML = '';
+    
+    let rank = 1;
+    let prevCount = -1;
+    let displayRank = 1;
+
+    stats.forEach((item, index) => {
+      // 투표가 아예 없는 날은 숨기거나 맨 밑으로 처리 (가시성 위해 O가 0명인 날은 숨기지 않음)
+      if (item.countO !== prevCount) {
+        displayRank = rank;
+        prevCount = item.countO;
+      }
+      rank++;
+
+      const dateObj = new Date(item.date);
+      const dayStr = weekdays[dateObj.getDay()];
+      const shortDate = `${dateObj.getMonth()+1}/${dateObj.getDate()} (${dayStr})`;
+      const isTop = (displayRank === 1 && item.countO > 0);
+
+      const tr = document.createElement('tr');
+      if (isTop) tr.className = 'best-row';
+
+      tr.innerHTML = `
+        <td>${item.countO > 0 ? (isTop ? `<span class="rank-badge">1위</span>` : `${displayRank}위`) : '-'}</td>
+        <td style="font-weight: bold;">${shortDate}</td>
+        <td style="color: var(--primary); font-weight: bold;">${item.countO}명 / 7명</td>
+      `;
+
+      USERS.forEach(u => {
+        const v = item.userVotes[u];
+        let color = v === 'O' ? 'var(--green)' : (v === 'X' ? 'var(--red)' : '#ccc');
+        let text = v || '-';
+        tr.innerHTML += `<td style="color: ${color}; font-weight: ${v ? 'bold':'normal'}">${text}</td>`;
+      });
+      
       tbody.appendChild(tr);
     });
   }
 
-  function setVote(dateKey, pIdx, val) {
-    if (!votes[dateKey]) votes[dateKey] = Array(NUM_PARTICIPANTS).fill('');
-    votes[dateKey][pIdx] = votes[dateKey][pIdx] === val ? '' : val; // 토글
-    localStorage.setItem('hoesik_votes', JSON.stringify(votes));
-    renderTable();
-    updateSummary();
-  }
-
-  function updateSummary() {
-    let maxO = -1;
-    const dateScores = [];
-
-    dates.forEach(d => {
-      const dateKey = formatDateKey(d);
-      const dayStr = daysKo[d.getDay()];
-      const rowVotes = votes[dateKey] || Array(NUM_PARTICIPANTS).fill('');
-      const countO = rowVotes.filter(v => v === 'O').length;
-      const countTri = rowVotes.filter(v => v === '△').length;
-
-      const scoreEl = document.getElementById(`score-${dateKey}`);
-      if (scoreEl) scoreEl.innerText = `${countO}/6`;
-
-      dateScores.push({ dateKey, dayStr, countO, countTri });
-      if (countO > maxO) maxO = countO;
-    });
-
-    const bestList = document.getElementById('bestList');
-    if (maxO <= 0) {
-      bestList.innerHTML = '투표를 진행하면 가장 많은 참여자가 참석할 수 있는 날짜가 표시됩니다.';
-      return;
-    }
-
-    const topDates = dateScores.filter(item => item.countO === maxO);
-    bestList.innerHTML = topDates.map(item => 
-      `<span class="best-badge">${item.dateKey} (${item.dayStr}) : O ${item.countO}명 / △ ${item.countTri}명</span>`
-    ).join('');
-  }
-
-  function copySummaryText() {
-    let text = `[2026년 10월-11월 회식 일정 투표 요약]\n\n`;
-    dates.forEach(d => {
-      const dateKey = formatDateKey(d);
-      const rowVotes = votes[dateKey] || [];
-      const countO = rowVotes.filter(v => v === 'O').length;
-      if (countO >= 4) { // 4명 이상 O인 날짜만 간략 출력
-        text += `• ${dateKey}(${daysKo[d.getDay()]}): O ${countO}명\n`;
-      }
-    });
-    navigator.clipboard.writeText(text).then(() => alert('투표 결과가 클립보드에 복사되었습니다! 카톡에 붙여넣기 하세요.'));
-  }
-
-  function resetData() {
-    if (confirm('모든 투표 및 참여자 데이터가 초기화됩니다.')) {
-      localStorage.removeItem('hoesik_votes');
-      votes = {};
-      renderTable();
-      updateSummary();
-    }
-  }
-
-  initUI();
+  // 페이지 진입 시 실행
+  init();
 </script>
 </body>
 </html>
